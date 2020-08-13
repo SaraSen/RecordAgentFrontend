@@ -11,6 +11,7 @@ import {
   CardTitle,
   Row,
   Col,
+  Button
 } from "reactstrap";
 // core components
 
@@ -18,10 +19,10 @@ import {
 class Dashboard extends React.Component {
 
   componentDidMount() {
-    this.fetchUsers();
+    this.fetchRecordings();
   }
 
-  fetchUsers() {
+  fetchRecordings = () => {
     fetch(`http://localhost:8080/getallrecordings`)
       .then(response => response.json())
       .then(data =>
@@ -33,44 +34,43 @@ class Dashboard extends React.Component {
       .catch(error => this.setState({ error, isLoading: false }));
   }
 
-  fetchNodes() {
-    const { recordings} = this.state;
-    for (var i = 0; i < this.state.recordings.size(); i++) {
-      recordings.map(recording => {
-        const { recordname, id } = recording;
-        return { recordname };
-      })
-
-    }
+  fetchNodes = (event) => {
+    fetch(`http://localhost:8080/getrecordings/` + event.target.value)
+      .then(response => response.json())
+      .then(data => this.setState({ dummyGraph: data, selectedOption: data }))
+      .catch(error => this.setState({ error, isLoading: false }));
   }
+
 
   state = {
     isLoading: true,
     users: [],
     error: null,
+    selectedOption: {id: 1070828526, recordname: "login to lms", folderlocation: "C:\\PSRRecordings\\1597294422392", events: Array(11)},
+    dummyGraph: []
   };
 
   render() {
-    const { isLoading, recordings, error } = this.state;
+    const { isLoading, recordings, error, dummyGraph, selectedOption } = this.state;
     const graph = {
       nodes: [
-        { id: 1, label: "Node 1"},
-        { id: 2, label: "Node 2"},
-        { id: 3, label: "Node 3"},
-        { id: 4, label: "Node 4"},
-        { id: 5, label: "Node 5"}
+        { id: 1, label: "Node 1" },
+        { id: 2, label: "Node 2" },
+        { id: 3, label: "Node 3" },
+        { id: 4, label: "Node 4" },
+        { id: 5, label: "Node 5" }
       ],
       edges: [
         { from: 1, to: 2 },
-        { from: 1, to: 3 },
-        { from: 2, to: 4 },
-        { from: 2, to: 5 }
+        { from: 2, to: 3 },
+        { from: 3, to: 4 },
+        { from: 4, to: 5 }
       ]
     };
 
     const options = {
       layout: {
-        // hierarchical: true,
+        hierarchical: false,
       },
       edges: {
         color: "#000000"
@@ -107,15 +107,16 @@ class Dashboard extends React.Component {
               <CardFooter>
                 <hr />
                 <Row>
-                  <Col md="7" xs="1">
+                  <Col md="6" xs="6">
                     <div>
-                      <select name="recordings" id="recordings">
+                      <select name="recordings" id="recordings" onChange={this.fetchNodes} >
                         {error ? <p>{error.message}</p> : null}
+                        <option>Select a Recording</option>
                         {!isLoading ? (
                           recordings.map(recording => {
-                            const { recordname, id, events } = recording;
+                            const { recordname, id } = recording;
                             return (
-                              <option value={id}>Name : {recordname} ID {id}</option >
+                              <option value={id} key={id}>Name : {recordname} ID {id}</option >
                             );
                           })
                         ) : (
@@ -124,12 +125,27 @@ class Dashboard extends React.Component {
                       </select>
                     </div>
                   </Col>
+                  <Col>
+                    {/* <div>
+                      {this.selectedOption.map(name => {
+                        var { recordname } = name
+                        return (
+                          <h5>{recordname}</h5>
+                        )
+                      })}
+                    </div> */}
+                  </Col>
                 </Row>
               </CardFooter>
             </Card>
           </Col>
 
         </Row>
+
+
+
+
+
         <Row>
           <Col lg="12" md="12" sm="12">
             <Card className="card-stats">
@@ -151,6 +167,7 @@ class Dashboard extends React.Component {
                       options={options}
                       events={events}
                     />
+                    {console.log(this.state.dummyGraph)}
                   </Col>
                 </Row>
               </CardFooter>
